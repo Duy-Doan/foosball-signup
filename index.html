@@ -1,59 +1,71 @@
+
+<!doctype html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Foosball Sign Up</title>
+  <title>Foosball Signup Update</title>
   <style>
     body {
       background: radial-gradient(circle at top, #2a0a44, #0a0612);
       color: #fff;
       font-family: Arial, sans-serif;
       margin: 0;
-      height: 100vh;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       position: relative;
+      padding: 30px 0 60px;
     }
     h1 {
       text-align: center;
-      margin: 10px 0 30px;
+      margin: 10px 0 20px;
       color: #f0d67f;
     }
     .teams {
       display: flex;
       justify-content: center;
       flex-wrap: wrap;
-      gap: 20px;
-      max-width: 800px;
+      gap: 14px;
+      max-width: 1200px;
+      padding: 10px;
     }
     .team-card {
       border: 1px solid #5a3d8a;
       border-radius: 12px;
       background: rgba(150, 80, 200, 0.15);
-      padding: 20px 30px;
-      min-width: 160px;
+      padding: 12px 14px;
+      width: 170px;
+      height: 70px;
+      box-sizing: border-box;
       text-align: center;
-      font-size: 16px;
+      font-size: 14px;
       transition: transform 0.2s, box-shadow 0.2s;
       cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
     .team-card:hover {
       transform: translateY(-5px);
       box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
     }
     .team-card.locked {
-      background: rgba(100, 255, 100, 0.2);
+      background: rgba(100, 255, 100, 0.12);
       border: 1px solid #00ff88;
       cursor: not-allowed;
     }
     .team-card strong {
       color: #d29eff;
+      display: block;
+      margin-bottom: 6px;
     }
     .settings-btn {
       position: absolute;
-      top: 20px;
-      right: 20px;
+      top: 18px;
+      right: 18px;
       font-size: 24px;
       background: none;
       border: none;
@@ -68,11 +80,13 @@
     .admin-page {
       display: none;
       width: 100%;
+      max-width: 1200px;
+      margin-top: 10px;
     }
     table {
       border-collapse: collapse;
-      width: 90%;
-      margin: 20px auto;
+      width: 100%;
+      margin: 12px 0 20px;
       background: rgba(50, 20, 80, 0.8);
       border-radius: 10px;
       overflow: hidden;
@@ -80,20 +94,20 @@
     table, th, td {
       border: 1px solid #d29eff;
       text-align: center;
-      padding: 10px;
+      padding: 8px;
     }
     th {
       background: rgba(210, 158, 255, 0.4);
     }
     .admin-controls {
       text-align: center;
-      margin: 20px;
+      margin: 10px 0 30px;
     }
     .admin-controls button {
       background: #5a3d8a;
       color: #fff;
       border: none;
-      padding: 10px 15px;
+      padding: 8px 12px;
       margin: 5px;
       border-radius: 8px;
       cursor: pointer;
@@ -102,31 +116,42 @@
     .admin-controls button:hover {
       background: #8a5df5;
     }
+    .action-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 0 6px;
+      color: #fff;
+    }
+    @media (max-width: 600px) {
+      .team-card { width: 140px; height: 64px; font-size: 13px; }
+      .teams { gap: 10px; }
+    }
   </style>
 </head>
 <body>
-  <h1 id="title">Giải Đấu Bi Lắc 2025 Arup Việt Nam</h1>
+  <h1 id="title">Foosball Signup Update</h1>
 
   <!-- Nút Setting -->
-  <button class="settings-btn" id="settingsBtn">⚙️</button>
+  <button class="settings-btn" id="settingsBtn" title="Admin settings">⚙️</button>
 
   <!-- Giao diện người chơi -->
-  <div class="teams" id="teamsContainer"></div>
+  <div class="teams" id="teamsContainer" aria-live="polite"></div>
 
   <!-- Giao diện Admin -->
-  <div class="admin-page" id="adminPage">
+  <div class="admin-page" id="adminPage" role="region" aria-label="Admin statistics">
     <h1>📊 Thống kê đăng ký</h1>
     <p style="text-align:center">
-      Tổng số đội: <span id="teamCount">0</span> | 
-      Tổng số thành viên: <span id="memberCount">0</span>
+      Tổng số người: <span id="playerCount">0</span>
     </p>
     <table>
       <thead>
         <tr>
           <th>STT</th>
-          <th>Tên đội</th>
-          <th>Thành viên</th>
+          <th>Tên người chơi</th>
           <th>Thời gian đăng ký</th>
+          <th>Hành động</th>
         </tr>
       </thead>
       <tbody id="statsTableBody"></tbody>
@@ -137,12 +162,12 @@
     </div>
   </div>
 
-  <!-- Firebase SDK -->
+  <!-- Firebase SDK (compat) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
   <script>
-    // 🔑 Cấu hình Firebase (cần thay bằng thông tin thật khi triển khai)
+    // 🔑 Cấu hình Firebase (demo) - thay bằng config thật khi triển khai
     const firebaseConfig = {
       apiKey: "AIzaSyDUMMY-KEY-FOR-EXAMPLE",
       authDomain: "foosball-sign-up.firebaseapp.com",
@@ -158,97 +183,138 @@
 
     const PASSWORD = "0000";
     let isAdmin = false;
-    const teamCount = 8;
+    const slotCount = 32; // <-- 32 slots tổng
 
     const teamsContainer = document.getElementById('teamsContainer');
     const settingsBtn = document.getElementById('settingsBtn');
     const adminPage = document.getElementById('adminPage');
     const title = document.getElementById('title');
 
-    const teamCountEl = document.getElementById('teamCount');
-    const memberCountEl = document.getElementById('memberCount');
+    const playerCountEl = document.getElementById('playerCount');
     const statsTableBody = document.getElementById('statsTableBody');
     const resetBtn = document.getElementById('resetBtn');
     const exitAdminBtn = document.getElementById('exitAdminBtn');
 
     function formatDateTime(date) {
       const d = new Date(date);
-      const day = String(d.getDate()).padStart(2, '0');
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const year = d.getFullYear();
-      const hours = String(d.getHours()).padStart(2, '0');
-      const minutes = String(d.getMinutes()).padStart(2, '0');
-      const seconds = String(d.getSeconds()).padStart(2, '0');
-      return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+      return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}:${d.getSeconds().toString().padStart(2,'0')}`;
     }
 
-    let teamsData = [];
+    let playersData = [];
 
-    db.ref("teamsData").on("value", snapshot => {
-      teamsData = snapshot.val() || [];
-      if (teamsData.length === 0) {
-        for (let i = 1; i <= teamCount; i++) {
-          teamsData.push({ id: i, name: `Đội ${i}`, members: "", locked: false, time: "" });
+    // Listen for changes on playersData
+    db.ref("playersData").on("value", snapshot => {
+      playersData = snapshot.val() || [];
+      // ensure correct length (initialize if empty or shorter than slotCount)
+      if (!Array.isArray(playersData) || playersData.length < slotCount) {
+        const newData = [];
+        for (let i = 1; i <= slotCount; i++) {
+          if (playersData && playersData[i-1]) {
+            // keep existing entry but normalize fields
+            const p = playersData[i-1];
+            newData.push({
+              id: i,
+              name: (p && typeof p.name === 'string') ? p.name : "",
+              locked: !!(p && p.locked),
+              time: (p && p.time) ? p.time : ""
+            });
+          } else {
+            newData.push({ id: i, name: "", locked: false, time: "" });
+          }
         }
+        playersData = newData;
         saveData();
       }
-      renderTeams();
+      renderPlayers();
       if (isAdmin) renderStats();
     });
 
     function saveData() {
-      db.ref("teamsData").set(teamsData);
+      db.ref("playersData").set(playersData);
     }
 
-    function renderTeams() {
+    function renderPlayers() {
       teamsContainer.innerHTML = "";
-      teamsData.forEach((team, i) => {
+      playersData.forEach((player, i) => {
         const div = document.createElement("div");
-        div.className = "team-card" + (team.locked ? " locked" : "");
-        div.innerHTML = `<strong>${team.name}</strong><br>${team.members || "Click để nhập"}`;
-        div.addEventListener('click', () => {
-          if (team.locked && !isAdmin) {
-            alert("Ô này đã bị khóa. Chỉ Admin mới có thể chỉnh sửa.");
-            return;
-          }
-          const teamName = prompt("Nhập tên đội:", team.name);
-          if (!teamName) return;
-          const members = prompt("Nhập tên các thành viên (ngăn cách bởi dấu ,):", team.members);
-          if (members === null) return;
-          teamsData[i].name = teamName;
-          teamsData[i].members = members;
-          const confirmSave = confirm("Bạn xác nhận tên đội và thành viên?");
-          if (confirmSave && !isAdmin) {
-            teamsData[i].locked = true;
-            teamsData[i].time = formatDateTime(new Date());
-          }
-          saveData();
-        });
+        div.className = "team-card" + (player.locked ? " locked" : "");
+        div.setAttribute('role','button');
+        div.setAttribute('tabindex','0');
+        div.innerHTML = `<strong>Slot ${player.id}</strong><div>${player.name || "Click để nhập"}</div>`;
+        div.addEventListener('click', () => handleSlotClick(i));
+        div.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSlotClick(i); });
         teamsContainer.appendChild(div);
       });
     }
 
+    function handleSlotClick(i) {
+      const player = playersData[i];
+      if (player.locked && !isAdmin) {
+        alert("Ô này đã bị khóa. Chỉ Admin mới có thể chỉnh sửa.");
+        return;
+      }
+      const playerName = prompt("Nhập tên người chơi:", player.name);
+      if (playerName === null) return; // canceled
+      if (playerName.trim() === "") {
+        alert("Tên không được để trống.");
+        return;
+      }
+      playersData[i].name = playerName.trim();
+      const confirmSave = confirm("Bạn xác nhận tên người chơi?");
+      if (confirmSave && !isAdmin) {
+        playersData[i].locked = true;
+        playersData[i].time = formatDateTime(new Date());
+      } else if (confirmSave && isAdmin) {
+        // if admin edits and confirms, set/update time
+        playersData[i].time = formatDateTime(new Date());
+      }
+      saveData();
+    }
+
     function renderStats() {
-      const registeredTeams = teamsData.filter(t => t.members.trim() !== "");
-      teamCountEl.textContent = registeredTeams.length;
-      let totalMembers = 0;
-      registeredTeams.forEach(t => {
-        totalMembers += t.members.split(",").filter(m => m.trim() !== "").length;
-      });
-      memberCountEl.textContent = totalMembers;
+      const registeredPlayers = playersData.filter(p => p.name && p.name.trim() !== "");
+      playerCountEl.textContent = registeredPlayers.length;
 
       statsTableBody.innerHTML = "";
-      teamsData.forEach(t => {
+      playersData.forEach((p, i) => {
         const row = document.createElement("tr");
         row.innerHTML = `
-          <td>${t.id}</td>
-          <td>${t.name}</td>
-          <td>${t.members || "-"}</td>
-          <td>${t.time || "-"}</td>
+          <td>${p.id}</td>
+          <td>${p.name || "-"}</td>
+          <td>${p.time || "-"}</td>
+          <td>
+            <button class="action-btn" onclick="editPlayer(${i})" title="Sửa">✏️</button>
+            <button class="action-btn" onclick="deletePlayer(${i})" title="Xóa">🗑️</button>
+          </td>
         `;
         statsTableBody.appendChild(row);
       });
     }
+
+    // functions exposed to buttons in table (must be global)
+    function editPlayer(index) {
+      const player = playersData[index];
+      const newName = prompt("Chỉnh sửa tên người chơi:", player.name);
+      if (newName === null) return;
+      if (newName.trim() === "") {
+        alert("Tên không được để trống.");
+        return;
+      }
+      playersData[index].name = newName.trim();
+      playersData[index].locked = true;
+      playersData[index].time = formatDateTime(new Date());
+      saveData();
+    }
+
+    function deletePlayer(index) {
+      if (!confirm("Bạn có chắc muốn xóa slot này?")) return;
+      playersData[index] = { id: index+1, name: "", locked: false, time: "" };
+      saveData();
+    }
+
+    // expose to window so onclick inline handlers can call them
+    window.editPlayer = editPlayer;
+    window.deletePlayer = deletePlayer;
 
     settingsBtn.addEventListener('click', () => {
       if (!isAdmin) {
@@ -269,10 +335,10 @@
 
     resetBtn.addEventListener('click', () => {
       if (!isAdmin) return;
-      if (confirm("Bạn có chắc muốn reset toàn bộ danh sách đội?")) {
-        teamsData = [];
-        for (let i = 1; i <= teamCount; i++) {
-          teamsData.push({ id: i, name: `Đội ${i}`, members: "", locked: false, time: "" });
+      if (confirm("Bạn có chắc muốn reset toàn bộ danh sách?")) {
+        playersData = [];
+        for (let i = 1; i <= slotCount; i++) {
+          playersData.push({ id: i, name: "", locked: false, time: "" });
         }
         saveData();
       }
@@ -283,7 +349,7 @@
       adminPage.style.display = "none";
       title.style.display = "block";
       teamsContainer.style.display = "flex";
-      renderTeams();
+      renderPlayers();
     });
   </script>
 </body>
